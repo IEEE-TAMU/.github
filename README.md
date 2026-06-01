@@ -4,9 +4,17 @@ Shared GitHub configuration for the [IEEE-TAMU](https://github.com/IEEE-TAMU) or
 
 ## Shared Workflows
 
-- **`docker-publish.yaml`** — Reusable workflow for building and publishing Docker images to GHCR. Used by `docs`, `portal`, and `discord` repos.
+### `docker-publish.yaml`
 
-### Usage
+Reusable workflow for building and publishing Docker images from a `Dockerfile` to GHCR.
+
+**Inputs:**
+
+| Input | Required | Description |
+|-------|----------|-------------|
+| `image-name` | yes | Docker image name (e.g. `docs`, `portal`, `discord-bot`) |
+
+**Usage:**
 
 ```yaml
 jobs:
@@ -15,4 +23,55 @@ jobs:
     with:
       image-name: my-app
     secrets: inherit
+```
+
+Used by: `docs`, `portal`, `discord`
+
+---
+
+### `nix-docker-publish.yaml`
+
+Reusable workflow for building and publishing Docker images from a Nix flake to GHCR.
+
+**Inputs:**
+
+| Input | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `image-name` | yes | — | Docker image name (must match `name` set in the Nix flake's `dockerTools` call) |
+| `flake-attr` | no | `packages.x86_64-linux.docker` | Nix flake attribute path to build |
+| `stream` | no | `true` | `true` if the flake uses `streamLayeredImage`, `false` if it uses `layeredImage` |
+
+**Usage:**
+
+```yaml
+jobs:
+  publish:
+    uses: IEEE-TAMU/.github/.github/workflows/nix-docker-publish.yaml@main
+    with:
+      image-name: my-app
+    secrets: inherit
+```
+
+Used by: `homepage`
+
+**Flake example (streamLayeredImage, `stream: true`):**
+
+```nix
+packages.docker = pkgs.dockerTools.streamLayeredImage {
+  name = "my-app";
+  tag = "latest";
+  contents = [ ... ];
+  config = { ... };
+};
+```
+
+**Flake example (layeredImage, `stream: false`):**
+
+```nix
+packages.docker = pkgs.dockerTools.layeredImage {
+  name = "my-app";
+  tag = "latest";
+  contents = [ ... ];
+  config = { ... };
+};
 ```

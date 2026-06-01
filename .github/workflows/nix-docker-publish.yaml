@@ -1,0 +1,49 @@
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        required: true
+        type: string
+        description: 'Docker image name (must match name set in the Nix flake)'
+      flake-attr:
+        required: false
+        type: string
+        default: 'packages.x86_64-linux.docker'
+        description: 'Nix flake attribute path to build'
+      stream:
+        required: false
+        type: boolean
+        default: true
+        description: 'Whether the flake uses streamLayeredImage (true) or layeredImage (false)'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - uses: DeterminateSystems/nix-installer-action@v20
+    - uses: DeterminateSystems/magic-nix-cache-action@v13
+    - name: Build image
+      run: nix build --extra-experimental-features "nix-command flakes" .#${{ inputs.flake-attr }}
+    - name: Load image
+      run: |
+        if [ "${{ inputs.stream }}" = "true" ]; then
+          ./result | docker load
+        else
+          docker load < result
+        fi
+    - name: Log in to registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+    - name: Push image
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+        [ "$VERSION" == "master" ] && VERSION=latest
+        echo IMAGE_ID=$IMAGE_ID
+        echo VERSION=$VERSION
+        docker tag ${{ inputs.image-name }} $IMAGE_ID:$VERSION
+        docker push $IMAGE_ID:$VERSION
