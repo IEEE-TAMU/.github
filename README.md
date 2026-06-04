@@ -19,11 +19,12 @@ Reusable workflow for building and publishing Docker images from a `Dockerfile` 
 ```yaml
 jobs:
   publish:
-    uses: IEEE-TAMU/.github/.github/workflows/docker-publish.yaml@main
+    uses: IEEE-TAMU/.github/.github/workflows/docker-publish.yaml@master
     with:
       image-name: my-app
-    secrets: inherit
 ```
+
+> `GITHUB_TOKEN` is automatically available in reusable workflows — no `secrets: inherit` needed unless you use custom secrets.
 
 Used by: `docs`, `portal`, `discord`
 
@@ -46,11 +47,12 @@ Reusable workflow for building and publishing Docker images from a Nix flake to 
 ```yaml
 jobs:
   publish:
-    uses: IEEE-TAMU/.github/.github/workflows/nix-docker-publish.yaml@main
+    uses: IEEE-TAMU/.github/.github/workflows/nix-docker-publish.yaml@master
     with:
       image-name: my-app
-    secrets: inherit
 ```
+
+> `GITHUB_TOKEN` is automatically available in reusable workflows — no `secrets: inherit` needed unless you use custom secrets.
 
 Used by: `homepage`
 
