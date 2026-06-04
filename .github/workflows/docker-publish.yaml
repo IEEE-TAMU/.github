@@ -7,7 +7,7 @@ on:
         description: 'Docker image name (e.g. docs, portal, discord-bot)'
 
 jobs:
-  publish:
+  build-push:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6

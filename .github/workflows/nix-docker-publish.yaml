@@ -17,7 +17,7 @@ on:
         description: 'Whether the flake uses streamLayeredImage (true) or layeredImage (false)'
 
 jobs:
-  publish:
+  build-push:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
